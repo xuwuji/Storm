@@ -32,7 +32,7 @@ public class IOUtil {
 	public static void log(String content) throws IOException {
 		DateTime time = DateTime.now();
 		String dir = time.toString(getDateFormatter1());
-		File delDir = new File(".\\" + dir);
+		File delDir = new File("./" + dir);
 		if (!delDir.exists()) {
 			delDir.mkdirs();
 		}
