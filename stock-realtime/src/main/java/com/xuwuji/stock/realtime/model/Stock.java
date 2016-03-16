@@ -1,7 +1,5 @@
 package com.xuwuji.stock.realtime.model;
 
-import java.sql.Timestamp;
-
 public class Stock {
 	public final static String SHANGHAI = "SH";
 	public final static String SHENZHEN = "SZ";

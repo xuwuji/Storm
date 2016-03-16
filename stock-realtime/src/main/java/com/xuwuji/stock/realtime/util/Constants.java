@@ -1,4 +1,4 @@
-package com.xuwuji.stock.realtime.constants;
+package com.xuwuji.stock.realtime.util;
 
 import java.util.HashMap;
 

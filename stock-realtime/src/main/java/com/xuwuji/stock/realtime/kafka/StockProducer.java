@@ -12,8 +12,8 @@ import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import com.xuwuji.stock.realtime.constants.Constants;
 import com.xuwuji.stock.realtime.model.Stock;
+import com.xuwuji.stock.realtime.util.Constants;
 import com.xuwuji.stock.realtime.util.HttpUtil;
 import com.xuwuji.stock.realtime.util.TimeUtil;
 
@@ -36,13 +36,8 @@ public class StockProducer {
 		try {
 			realUrl = new URL(Constants.APIURL);
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 	}
 
 	/**
@@ -68,17 +63,6 @@ public class StockProducer {
 		String shenzhen_dot = shenzhen.get("curdot").toString();
 		String DJI_dot = DJI.get("curdot").toString();
 		String HSI_dot = HSI.get("curdot").toString();
-		// String time = TimeUtil.currentTimewithMinutes();
-		// System.out.println("------------- " + time + " ----------------");
-		// System.out.println("shanghai:" + shanghai_dot);
-		// System.out.println("shenzhen:" + shenzhen_dot);
-		// System.out.println("DJI:" + DJI_dot);
-		// System.out.println("HSI:" + HSI_dot);
-		// System.out.println("-------------------------------------------");
-		// System.out.println("\n");
-		// System.out.println("\n");
-		// System.out.println("\n");
-
 		HashMap<String, Object> result = new HashMap<String, Object>();
 		result.put(Stock.TIMESTAMP, System.currentTimeMillis());
 		result.put(Stock.SHANGHAI, shanghai_dot);
@@ -113,7 +97,6 @@ public class StockProducer {
 		Producer<String, String> producer = new Producer<String, String>(config);
 
 		String topic = Constants.STOCK_TOPIC;
-		// String message = "";
 		for (int i = 0; i < 1000; i++) {
 			KeyedMessage<String, String> data = new KeyedMessage<String, String>(topic, this.getStock());
 			System.out.println(this.getStock());
@@ -125,7 +108,6 @@ public class StockProducer {
 
 	public static void main(String[] args) throws IOException, ParseException, InterruptedException {
 		StockProducer p = new StockProducer();
-		// p.stock();
 		p.produce();
 
 	}
