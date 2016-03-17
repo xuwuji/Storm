@@ -20,7 +20,7 @@ public class MovingAverageBolt extends BaseBasicBolt {
 	int count = 0;
 	double average = 0;
 	private List<Double> list = new ArrayList<Double>();
-	private static final Logger LOGGER = Logger.getLogger(DotDataFilter.class);
+	private static final Logger LOGGER = Logger.getLogger(DotDataBoltFilter.class);
 
 	public void execute(Tuple input, BasicOutputCollector collector) {
 		// LOGGER.error(String.valueOf("--------" + input.size()));

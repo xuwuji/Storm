@@ -5,6 +5,8 @@ import storm.kafka.KafkaSpout;
 import storm.kafka.SpoutConfig;
 import storm.kafka.StringScheme;
 import storm.kafka.ZkHosts;
+import storm.kafka.trident.OpaqueTridentKafkaSpout;
+import storm.kafka.trident.TridentKafkaConfig;
 
 /**
  * Using kafka as the spout. create a kafka spout based on config.
@@ -37,5 +39,13 @@ public class KafkaSpoutFactory {
 		// KafkaSpout extends BaseRichSpout, so it takes the config as a
 		// parameter and send tuples from the kafka source
 		return new KafkaSpout(config);
+	}
+
+	public static OpaqueTridentKafkaSpout createTridentSpout(String host, String topic, String id) {
+		TridentKafkaConfig spoutConf = new TridentKafkaConfig(new ZkHosts(host), topic, id);
+		spoutConf.scheme = new SchemeAsMultiScheme(new StringScheme());
+		spoutConf.startOffsetTime = -2;
+		OpaqueTridentKafkaSpout spout = new OpaqueTridentKafkaSpout(spoutConf);
+		return spout;
 	}
 }

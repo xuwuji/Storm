@@ -15,10 +15,10 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-public class DotDataFilter extends BaseBasicBolt {
+public class DotDataBoltFilter extends BaseBasicBolt {
 
 	private static final long serialVersionUID = 1L;
-	private static final Logger LOGGER = Logger.getLogger(DotDataFilter.class);
+	private static final Logger LOGGER = Logger.getLogger(DotDataBoltFilter.class);
 
 	public void execute(Tuple input, BasicOutputCollector collector) {
 		String str = input.getString(0);
