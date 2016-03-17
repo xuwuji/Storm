@@ -46,7 +46,7 @@ public class StockService implements Service {
 		JSONObject shenzhen = (JSONObject) market.get("shenzhen");
 		JSONObject DJI = (JSONObject) market.get("DJI");
 		JSONObject HSI = (JSONObject) market.get("HSI");
-		Double shanghai_dot = Double.valueOf(shanghai.get("curdot").toString());
+		String shanghai_dot = shanghai.get("curdot").toString();
 		String shenzhen_dot = shenzhen.get("curdot").toString();
 		String DJI_dot = DJI.get("curdot").toString();
 		String HSI_dot = HSI.get("curdot").toString();

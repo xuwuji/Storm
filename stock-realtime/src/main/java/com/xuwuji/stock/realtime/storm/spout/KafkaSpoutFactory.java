@@ -1,7 +1,6 @@
 package com.xuwuji.stock.realtime.storm.spout;
 
 import backtype.storm.spout.SchemeAsMultiScheme;
-import backtype.storm.topology.base.BaseRichSpout;
 import storm.kafka.KafkaSpout;
 import storm.kafka.SpoutConfig;
 import storm.kafka.StringScheme;

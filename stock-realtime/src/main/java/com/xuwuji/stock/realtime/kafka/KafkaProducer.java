@@ -55,7 +55,7 @@ public class KafkaProducer {
 		// 1.3 Ack
 		props.put("request.required.acks", "1");
 		// 1.4 ZK Server
-		props.put("zk.connect", "localhost:2181");
+		props.put("zk.connect", Constants.ZKHOST);
 		// 1.5 define a partition rule
 		// props.put("partitioner.class",
 		// "com.xuwuji.stock.realtime.kafka.CustomPartitioner");
