@@ -7,6 +7,7 @@ public class Constants {
 	public static final String APIURL = "http://a.apix.cn/apixmoney/stockdata/stock?stockid=50";
 	public static final String APIKEY = "39db628ef6cb48385695ee018e927d67";
 	public static final String STOCK_TOPIC = "stock.dot";
+	public static final String ZKHOST = "localhost:2181";
 
 	static {
 		HEADER.put("accept", "application/json");
