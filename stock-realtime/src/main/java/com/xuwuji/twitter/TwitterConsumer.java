@@ -1,5 +1,6 @@
 package com.xuwuji.twitter;
 
+import twitter4j.HashtagEntity;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
@@ -15,7 +16,22 @@ public class TwitterConsumer {
 		StatusListener listener = new StatusListener() {
 			@Override
 			public void onStatus(Status status) {
-				System.out.println("@" + status.getUser().getScreenName() + " - " + status.getText());
+
+				System.out.println("--------------------");
+				System.out.println(status.getUser().getName());
+				System.out.println(status.getUser().getLocation());
+				HashtagEntity[] entities = status.getHashtagEntities();
+				if (entities.length != 0) {
+					for (HashtagEntity tag : entities) {
+						System.out.println(tag.getText());
+					}
+				}
+
+				System.out.println(status.getText());
+				// System.out.println("@" + status.getUser().getScreenName() + "
+				// - " + status.getText());
+				System.out.println("--------------------");
+				System.out.println("\n\n");
 			}
 
 			@Override
