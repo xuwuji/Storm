@@ -13,6 +13,7 @@ import backtype.storm.LocalCluster;
 import backtype.storm.tuple.Fields;
 import storm.trident.Stream;
 import storm.trident.TridentTopology;
+import storm.trident.fluent.GroupedStream;
 
 public class StockTridentTopology {
 
@@ -35,8 +36,10 @@ public class StockTridentTopology {
 				.each(new Fields(Stock.TIMESTAMP), new TimeTridentParser("HOUR"), new Fields("hour"))
 				// 4. filter the message, it should between Monday and Friday
 				.each(new Fields(Stock.TIMESTAMP), new TimeTridentParser("DAY"), new Fields("day"))
-				.each(new Fields(Stock.SHANGHAI, Stock.SHENZHEN, Stock.HSI, Stock.DJI, "hour", "day"), new LogHandler(),
-						new Fields("a"));
+				.each(new Fields(Stock.SHANGHAI, Stock.SHENZHEN, Stock.HSI, Stock.DJI, "hour", "day"),
+						new LogHandler());
+
+		GroupedStream DayStream = validStream.groupBy(new Fields("day"));
 
 		Config config = new Config();
 		LocalCluster cluster = new LocalCluster();
