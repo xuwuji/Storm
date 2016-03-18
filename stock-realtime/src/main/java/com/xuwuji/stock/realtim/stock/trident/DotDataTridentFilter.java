@@ -19,10 +19,14 @@ public class DotDataTridentFilter extends BaseFilter {
 	public boolean isKeep(TridentTuple tuple) {
 		HashMap<String, Object> map = (HashMap<String, Object>) JSONValue.parse(String.valueOf(tuple.get(0)));
 		for (Entry<String, Object> entry : map.entrySet()) {
-			LOGGER.error(entry.getKey());
-			LOGGER.error(entry.getValue());
+			String key = entry.getKey();
+			Object value = entry.getValue();
+			if (value == null || value.equals("") || value.equals("0")) {
+				LOGGER.error(key + " is empty");
+				return false;
+			}
 		}
-		return false;
+		return true;
 	}
 
 }
