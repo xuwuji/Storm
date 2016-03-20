@@ -8,6 +8,8 @@ public class Constants {
 	public static final String APIKEY = "39db628ef6cb48385695ee018e927d67";
 	public static final String STOCK_TOPIC = "stock.dot";
 	public static final String ZKHOST = "localhost:2181";
+	public static final String KAKFA_BROKER = "localhost:9092";
+	public static final String TWITTER_TOPIC = "twitter.message";
 
 	static {
 		HEADER.put("accept", "application/json");

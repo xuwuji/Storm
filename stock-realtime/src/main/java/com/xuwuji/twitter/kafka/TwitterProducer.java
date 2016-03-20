@@ -1,5 +1,18 @@
-package com.xuwuji.twitter;
+package com.xuwuji.twitter.kafka;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Properties;
+
+import org.json.simple.JSONObject;
+
+import com.xuwuji.stock.realtime.model.Tweet;
+import com.xuwuji.stock.realtime.util.Constants;
+
+import kafka.javaapi.producer.Producer;
+import kafka.producer.KeyedMessage;
+import kafka.producer.ProducerConfig;
 import twitter4j.FilterQuery;
 import twitter4j.HashtagEntity;
 import twitter4j.StallWarning;
@@ -9,33 +22,58 @@ import twitter4j.StatusListener;
 import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
 
-public class TwitterConsumer {
+/**
+ * Real-time twitter producer
+ * 
+ * @author wuxu 2016-3-20
+ *
+ */
+public class TwitterProducer {
+	private static Properties props;
+	private Producer<String, String> producer;
 
-	public static void main(String[] args) {
-		// StatusListener listener = new TwitterStatusListener();
+	static {
+		props = new Properties();
+		props.put("metadata.broker.list", Constants.KAKFA_BROKER);
+		props.put("serializer.class", "kafka.serializer.StringEncoder");
+		props.put("request.required.ack", 1);
+		props.put("zk.connect", Constants.ZKHOST);
+
+	}
+
+	public void produce() {
 		TwitterStream stream = new TwitterStreamFactory().getInstance();
-
+		ProducerConfig config = new ProducerConfig(props);
+		producer = new Producer<String, String>(config);
 		StatusListener listener = new StatusListener() {
 			@Override
 			public void onStatus(Status status) {
-
+				HashMap<String, Object> result = new HashMap<String, Object>();
 				System.out.println("--------------------");
 				System.out.println("user name: " + status.getUser().getName());
 				System.out.println("location: " + status.getUser().getLocation());
 				HashtagEntity[] entities = status.getHashtagEntities();
 				System.out.println("----- tags -----");
+				List<String> tags = new ArrayList<String>();
 				if (entities.length != 0) {
 					for (HashtagEntity tag : entities) {
 						System.out.println(tag.getText());
+						tags.add(tag.getText());
 					}
 				}
 				System.out.println("----- tags -----");
 				System.out.println("text: " + status.getText());
-				System.out.println(x);
-				// System.out.println("@" + status.getUser().getScreenName() + "
-				// - " + status.getText());
+				System.out.println("time: " + status.getCreatedAt());
 				System.out.println("--------------------");
 				System.out.println("\n\n");
+				result.put(Tweet.USERNAME, status.getUser().getName());
+				result.put(Tweet.LOCATION, status.getUser().getLocation());
+				result.put(Tweet.TAGS, tags);
+				result.put(Tweet.TEXT, status.getText());
+				result.put(Tweet.TIME, status.getCreatedAt());
+				KeyedMessage<String, String> data = new KeyedMessage<String, String>(Constants.TWITTER_TOPIC,
+						JSONObject.toJSONString(result));
+				producer.send(data);
 			}
 
 			@Override
@@ -66,7 +104,11 @@ public class TwitterConsumer {
 		stream.addListener(listener);
 		FilterQuery query = new FilterQuery().track("NBA");
 		stream.filter(query);
-		// stream.sample();
+	}
+
+	public static void main(String[] args) {
+		TwitterProducer producer = new TwitterProducer();
+		producer.produce();
 	}
 
 }
