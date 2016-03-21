@@ -18,9 +18,9 @@ public class LogHandler extends BaseFilter {
 	public boolean isKeep(TridentTuple tuple) {
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < tuple.size(); i++) {
-			builder.append(String.valueOf(tuple.get(i)) + "; ");
+			builder.append(String.valueOf(tuple.get(i)) + ";  ");
 		}
-		LOGGER.error("-----" + builder.toString());
+		LOGGER.debug("-----" + builder.toString());
 		return true;
 	}
 

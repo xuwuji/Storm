@@ -41,10 +41,17 @@ public class KafkaSpoutFactory {
 		return new KafkaSpout(config);
 	}
 
-	public static OpaqueTridentKafkaSpout createTridentSpout(String host, String topic, String id) {
+	public static OpaqueTridentKafkaSpout createTridentSpout(String host, String topic, String id,
+			boolean startFromBeginning) {
 		TridentKafkaConfig spoutConf = new TridentKafkaConfig(new ZkHosts(host), topic, id);
 		spoutConf.scheme = new SchemeAsMultiScheme(new StringScheme());
-		spoutConf.startOffsetTime = -2;
+		if (!startFromBeginning) {
+			spoutConf.startOffsetTime = -1;// start from latest offset
+		} else {
+			System.out.println("start from earliest, force from start");
+			spoutConf.forceFromStart = true;
+			spoutConf.startOffsetTime = -2; // start from the earliest
+		}
 		OpaqueTridentKafkaSpout spout = new OpaqueTridentKafkaSpout(spoutConf);
 		return spout;
 	}

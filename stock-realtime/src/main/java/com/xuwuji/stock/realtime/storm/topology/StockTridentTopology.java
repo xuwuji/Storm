@@ -19,8 +19,8 @@ public class StockTridentTopology {
 
 	public static void main(String[] args) {
 		TridentTopology topology = new TridentTopology();
-		Stream stream = topology.newStream("str",
-				KafkaSpoutFactory.createTridentSpout(Constants.ZKHOST, Constants.STOCK_TOPIC, "stock-trident-spout"));
+		Stream stream = topology.newStream("str", KafkaSpoutFactory.createTridentSpout(Constants.ZKHOST,
+				Constants.STOCK_TOPIC, "stock-trident-spout", true));
 		String[] tags = new String[] { Stock.TIMESTAMP, Stock.SHANGHAI, Stock.SHENZHEN, Stock.HSI, Stock.DJI };
 		Fields fields = new Fields(tags);
 		// in trident, after each function, the data to be emitted is not

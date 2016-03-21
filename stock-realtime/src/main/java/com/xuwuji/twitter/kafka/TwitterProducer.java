@@ -41,7 +41,7 @@ public class TwitterProducer {
 
 	}
 
-	public void produce() {
+	public void produce(String keyword) {
 		TwitterStream stream = new TwitterStreamFactory().getInstance();
 		ProducerConfig config = new ProducerConfig(props);
 		producer = new Producer<String, String>(config);
@@ -51,26 +51,26 @@ public class TwitterProducer {
 				HashMap<String, Object> result = new HashMap<String, Object>();
 				System.out.println("--------------------");
 				System.out.println("user name: " + status.getUser().getName());
-				System.out.println("location: " + status.getUser().getLocation());
 				HashtagEntity[] entities = status.getHashtagEntities();
-				System.out.println("----- tags -----");
 				List<String> tags = new ArrayList<String>();
 				if (entities.length != 0) {
+					System.out.print("tags:");
 					for (HashtagEntity tag : entities) {
-						System.out.println(tag.getText());
+						System.out.print("#" + tag.getText() + "   ");
 						tags.add(tag.getText());
 					}
+					System.out.println("");
 				}
-				System.out.println("----- tags -----");
 				System.out.println("text: " + status.getText());
 				System.out.println("time: " + status.getCreatedAt());
+				result.put(Tweet.USERNAME, status.getUser().getName());
+				System.out.println("location: " + status.getUser().getLocation());
+				result.put(Tweet.LOCATION, status.getUser().getLocation());
 				System.out.println("--------------------");
 				System.out.println("\n\n");
-				result.put(Tweet.USERNAME, status.getUser().getName());
-				result.put(Tweet.LOCATION, status.getUser().getLocation());
 				result.put(Tweet.TAGS, tags);
 				result.put(Tweet.TEXT, status.getText());
-				result.put(Tweet.TIME, status.getCreatedAt());
+				result.put(Tweet.TIME, status.getCreatedAt().getTime());
 				KeyedMessage<String, String> data = new KeyedMessage<String, String>(Constants.TWITTER_TOPIC,
 						JSONObject.toJSONString(result));
 				producer.send(data);
@@ -102,13 +102,13 @@ public class TwitterProducer {
 			}
 		};
 		stream.addListener(listener);
-		FilterQuery query = new FilterQuery().track("NBA");
+		FilterQuery query = new FilterQuery().track(keyword);
 		stream.filter(query);
 	}
 
 	public static void main(String[] args) {
 		TwitterProducer producer = new TwitterProducer();
-		producer.produce();
+		producer.produce("NBA");
 	}
 
 }
