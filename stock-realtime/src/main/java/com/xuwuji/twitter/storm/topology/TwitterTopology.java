@@ -19,11 +19,13 @@ public class TwitterTopology {
 		Stream stream = topology.newStream("str", KafkaSpoutFactory.createTridentSpout(Constants.ZKHOST,
 				Constants.TWITTER_TOPIC, "twitter-spout", false));
 		String[] fields = new String[] { Tweet.TIME, Tweet.USERNAME, Tweet.LOCATION, Tweet.TEXT, Tweet.TAGS };
-		stream.each(new Fields("str"), new TwitterParser(fields), new Fields(fields)).each(new Fields(fields),
-				new LogHandler());
+		Stream parsedStream = stream.each(new Fields("str"), new TwitterParser(fields), new Fields(fields))
+				.each(new Fields(fields), new LogHandler());
+		// The project method on Stream keeps only the fields specified in
+		// the operation.
+		parsedStream = parsedStream.project(new Fields(fields));
 		LocalCluster cluster = new LocalCluster();
 		Config config = new Config();
 		cluster.submitTopology("twitter-trident-topology", config, topology.build());
 	}
-
 }
