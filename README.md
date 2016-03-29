@@ -1,5 +1,7 @@
-# Storm
+# Storm Realtime Application
 
-Kafka as spout
+Twitter messages as spout through Kafka.
 
-Moving average model as the bolt process
+Data Processing by Storm, mostly are written in trident.
+
+Cassandra as the persistence layer. Using the project "[storm-cassandra-cql](https://github.com/hmsonline/storm-cassandra-cql/tree/storm-cassandra-cql-0.3.10)" as the bridge between storm and cassandra.
