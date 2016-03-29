@@ -56,7 +56,7 @@ public class TwitterProducer {
 		props.put("zk.connect", Constants.ZKHOST);
 	}
 
-	public void produce(String keyword) {
+	public void produce(String... keyword) {
 		TwitterStream stream = new TwitterStreamFactory().getInstance();
 		ProducerConfig config = new ProducerConfig(props);
 		producer = new Producer<String, String>(config);

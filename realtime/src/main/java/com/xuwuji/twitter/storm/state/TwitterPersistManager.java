@@ -33,6 +33,7 @@ public class TwitterPersistManager implements Serializable {
 		options = new CassandraCqlMapState.Options();
 		this.options.keyspace = (String) config.get("keyspace");
 		this.options.tableName = (String) config.get("tablename");
+		this.options.maxBatchSize = (Integer) config.get("batchsize");
 	}
 
 	/**

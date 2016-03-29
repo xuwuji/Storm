@@ -3,8 +3,6 @@ package com.xuwuji.stock.trident.operation;
 import org.apache.log4j.Logger;
 
 import storm.trident.operation.BaseFilter;
-import storm.trident.operation.BaseFunction;
-import storm.trident.operation.TridentCollector;
 import storm.trident.tuple.TridentTuple;
 
 public class LogHandler extends BaseFilter {
@@ -19,7 +17,8 @@ public class LogHandler extends BaseFilter {
 		for (int i = 0; i < tuple.size(); i++) {
 			builder.append(String.valueOf(tuple.get(i)) + ";  ");
 		}
-		LOGGER.error("-----" + builder.toString());
+		LOGGER.info(builder.toString());
+		// System.out.println(builder.toString());
 		return true;
 	}
 

@@ -32,24 +32,26 @@ public class BaseRowMapper<V> implements CqlRowMapper<List<Object>, V>, Serializ
 	protected String[] keyNames;
 	protected String[] valueNames;
 	protected String[] columnsNames;
-	protected Object[] columnValues;
+	protected Object[] columnsValues;
 
 	public BaseRowMapper(String keyspace, String table, String[] keyColumns, String[] valueColumns) {
-		this.table = table;
 		this.keyspace = keyspace;
+		this.table = table;
 		// names for the key columns
 		this.keyNames = keyColumns;
 		// names for the value columns
 		this.valueNames = valueColumns;
 		// all names for all columns(including the key and value)
-		this.columnsNames = new String[keyColumns.length + valueColumns.length];
-		// all values for all columns(including the key and value)
-		this.columnValues = new Object[keyColumns.length + valueColumns.length];
+		this.columnsNames = new String[keyNames.length + valueNames.length];
+		// all real values for all columns(including the key and value)
+		this.columnsValues = new Object[keyNames.length + valueNames.length];
 		// copy keys' names and values' into columsNames array
 		System.arraycopy(keyNames, 0, columnsNames, 0, keyNames.length);
 		System.arraycopy(valueNames, 0, columnsNames, keyNames.length, valueNames.length);
 	}
 
+	// write customized mapper and override this method to get what value you
+	// want
 	@Override
 	public V getValue(Row row) {
 		// TODO Auto-generated method stub
@@ -65,12 +67,11 @@ public class BaseRowMapper<V> implements CqlRowMapper<List<Object>, V>, Serializ
 		Insert statement = QueryBuilder.insertInto(keyspace, table);
 		Object[] mappedKey = key.toArray();
 		Object[] mappedValue = new Object[] { value };
-		// copy the key columns into the columnValues array
-		System.arraycopy(mappedKey, 0, columnValues, 0, mappedKey.length);
-		// copy the value columns into the columnValues array
-		System.arraycopy(mappedValue, 0, columnValues, mappedKey.length, mappedValue.length);
+		// copy the key and value columns into the columnValues array
+		System.arraycopy(mappedKey, 0, columnsValues, 0, mappedKey.length);
+		System.arraycopy(mappedValue, 0, columnsValues, mappedKey.length, mappedValue.length);
 		// insert into the db
-		statement.values(columnsNames, columnValues);
+		statement.values(columnsNames, columnsValues);
 		return statement;
 	}
 
@@ -84,6 +85,9 @@ public class BaseRowMapper<V> implements CqlRowMapper<List<Object>, V>, Serializ
 		return statement;
 	}
 
+	/**
+	 * retrieve the value based on the keys
+	 */
 	@Override
 	public Statement retrieve(List<Object> key) {
 		Select statement = QueryBuilder.select(columnsNames).from(keyspace, table);
