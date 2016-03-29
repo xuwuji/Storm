@@ -26,13 +26,13 @@ public class TwitterTopology {
 
 	public StormTopology build() {
 		TridentTopology topology = new TridentTopology();
-		Stream stream = topology.newStream("str", KafkaSpoutFactory.createTridentSpout(Constants.ZKHOST,
-				Constants.TWITTER_TOPIC, "twitter-spout", false));
+		Stream stream = topology.newStream("twitter-location-topology", KafkaSpoutFactory
+				.createTridentSpout(Constants.ZKHOST, Constants.TWITTER_TOPIC, "twitter-spout", false));
 		String[] fields = new String[] { Tweet.TIME, Tweet.USERNAME, Tweet.LOCATION, Tweet.TEXT, Tweet.TAGS };
 		Stream parsedStream = stream.each(new Fields("str"), new TwitterParser(fields), new Fields(fields))
 				.each(new Fields(fields), new LogHandler());
-		// The project method on Stream keeps only the fields specified in
-		// the operation.
+		// The project method on Stream keeps only the fields specified in the
+		// operation.
 		Stream locationStream = parsedStream.project(new Fields(Tweet.LOCATION)).each(new Fields(Tweet.LOCATION),
 				new LogHandler());
 
