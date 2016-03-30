@@ -1,16 +1,19 @@
 package com.xuwuji.twitter.storm.topology;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.hmsonline.trident.cql.MapConfiguredCqlClientFactory;
 import com.xuwuji.realtime.util.Constants;
 import com.xuwuji.realtime.util.KafkaSpoutFactory;
+import com.xuwuji.realtime.util.TimeType;
 import com.xuwuji.stock.model.Tweet;
 import com.xuwuji.stock.trident.operation.LogHandler;
 import com.xuwuji.twitter.cassandra.cql.mapper.IntValueMapper;
 import com.xuwuji.twitter.storm.state.TwitterPersistManager;
 import com.xuwuji.twitter.storm.trident.operation.Count;
+import com.xuwuji.twitter.storm.trident.operation.TimeRound;
 import com.xuwuji.twitter.storm.trident.operation.TwitterParser;
 
 import backtype.storm.Config;
@@ -30,11 +33,14 @@ public class TwitterTopology {
 				.createTridentSpout(Constants.ZKHOST, Constants.TWITTER_TOPIC, "twitter-spout", false));
 		String[] fields = new String[] { Tweet.TIME, Tweet.USERNAME, Tweet.LOCATION, Tweet.TEXT, Tweet.TAGS };
 		Stream parsedStream = stream.each(new Fields("str"), new TwitterParser(fields), new Fields(fields))
-				.each(new Fields(fields), new LogHandler());
+				.each(new Fields(fields), new LogHandler())
+				.each(new Fields(Tweet.TIME), new TimeRound(TimeType.HOUR), new Fields("hour"))
+				.each(new Fields(Tweet.TIME), new TimeRound(TimeType.DAY), new Fields("day"))
+				.each(new Fields(Tweet.TIME), new TimeRound(TimeType.MONTH), new Fields("month"));
 		// The project method on Stream keeps only the fields specified in the
 		// operation.
-		Stream locationStream = parsedStream.project(new Fields(Tweet.LOCATION)).each(new Fields(Tweet.LOCATION),
-				new LogHandler());
+		Stream locationStream = parsedStream.project(new Fields(Tweet.LOCATION, "hour", "day", "month"))
+				.each(new Fields(Tweet.LOCATION), new LogHandler());
 
 		// declare the config for the cassandra persistence manager
 		Map<String, Object> persistConfig = new HashMap<String, Object>();
@@ -43,17 +49,20 @@ public class TwitterTopology {
 		persistConfig.put("batchsize", 10);
 		TwitterPersistManager manager = new TwitterPersistManager(persistConfig);
 
-		StateFactory locationState = manager.getState(new String[] { Tweet.LOCATION }, new String[] { "count" },
-				IntValueMapper.class, StateType.NON_TRANSACTIONAL);
-		// group by location
-		locationStream.groupBy(new Fields(Tweet.LOCATION))
+		String[] locationKeys = new String[] { Tweet.LOCATION, "hour", "day", "month" };
+		StateFactory locationState = manager.getState(locationKeys, new String[] { "count" }, IntValueMapper.class,
+				StateType.NON_TRANSACTIONAL);
+		// group by location,hour,day, month
+		// remember the stream should be grouped by the keys, otherwise it got
+		// an error
+		locationStream.groupBy(new Fields(Arrays.asList(locationKeys)))
 				.persistentAggregate(locationState, new Count(), new Fields("count")).parallelismHint(2);
 		return topology.build();
 	}
 
 	public static void main(String[] args) {
 		String env = "local";
-		if (args != null || args.length >= 2) {
+		if (args.length != 0) {
 			env = args[0];
 		}
 		TwitterTopology topology = new TwitterTopology();
