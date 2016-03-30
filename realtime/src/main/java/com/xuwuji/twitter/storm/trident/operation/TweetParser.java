@@ -16,11 +16,11 @@ import storm.trident.tuple.TridentTuple;
  * @author wuxu 2016-3-21
  *
  */
-public class TwitterParser extends BaseFunction {
+public class TweetParser extends BaseFunction {
 	private static final long serialVersionUID = 1L;
 	private String[] fields;
 
-	public TwitterParser(String[] fields) {
+	public TweetParser(String[] fields) {
 		this.fields = fields;
 	}
 

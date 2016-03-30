@@ -14,7 +14,7 @@ import com.xuwuji.twitter.cassandra.cql.mapper.IntValueMapper;
 import com.xuwuji.twitter.storm.state.TwitterPersistManager;
 import com.xuwuji.twitter.storm.trident.operation.Count;
 import com.xuwuji.twitter.storm.trident.operation.TimeRound;
-import com.xuwuji.twitter.storm.trident.operation.TwitterParser;
+import com.xuwuji.twitter.storm.trident.operation.TweetParser;
 
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
@@ -32,7 +32,7 @@ public class TwitterTopology {
 		Stream stream = topology.newStream("twitter-location-topology", KafkaSpoutFactory
 				.createTridentSpout(Constants.ZKHOST, Constants.TWITTER_TOPIC, "twitter-spout", false));
 		String[] fields = new String[] { Tweet.TIME, Tweet.USERNAME, Tweet.LOCATION, Tweet.TEXT, Tweet.TAGS };
-		Stream parsedStream = stream.each(new Fields("str"), new TwitterParser(fields), new Fields(fields))
+		Stream parsedStream = stream.each(new Fields("str"), new TweetParser(fields), new Fields(fields))
 				.each(new Fields(fields), new LogHandler())
 				.each(new Fields(Tweet.TIME), new TimeRound(TimeType.HOUR), new Fields("hour"))
 				.each(new Fields(Tweet.TIME), new TimeRound(TimeType.DAY), new Fields("day"))
