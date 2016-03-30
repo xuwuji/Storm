@@ -32,7 +32,7 @@ public class TwitterPersistManager implements Serializable {
 		this.config = config;
 		options = new CassandraCqlMapState.Options();
 		this.options.keyspace = (String) config.get("keyspace");
-		this.options.tableName = (String) config.get("tablename");
+		// this.options.tableName = (String) config.get("tablename");
 		this.options.maxBatchSize = (Integer) config.get("batchsize");
 	}
 
@@ -49,14 +49,14 @@ public class TwitterPersistManager implements Serializable {
 	 * @return
 	 */
 	@SuppressWarnings("rawtypes")
-	public StateFactory getState(String keys[], String metrics[], Class mapperClass, StateType type) {
+	public StateFactory getState(String keys[], String metrics[], Class mapperClass, StateType type, String table) {
 		try {
 			Constructor constructor = mapperClass.getConstructor(String.class, String.class, String[].class,
 					String[].class);
 			String keyspace = (String) config.get("keyspace");
-			String tablename = (String) config.get("tablename");
+			// String tablename = (String) config.get("tablename");
 			// initialize a new mapper class
-			BaseRowMapper mapper = (BaseRowMapper) constructor.newInstance(keyspace, tablename, keys, metrics);
+			BaseRowMapper mapper = (BaseRowMapper) constructor.newInstance(keyspace, table, keys, metrics);
 			return createStateFactory(mapper, type);
 		} catch (Exception e) {
 			throw new RuntimeException("Mapper class not found:" + mapperClass.getCanonicalName(), e);

@@ -1,9 +1,13 @@
 package com.xuwuji.twitter.storm.trident.operation;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.json.simple.JSONValue;
+
+import com.xuwuji.stock.model.Tweet;
 
 import backtype.storm.tuple.Values;
 import storm.trident.operation.BaseFunction;
@@ -28,20 +32,33 @@ public class TweetParser extends BaseFunction {
 	public void execute(TridentTuple tuple, TridentCollector collector) {
 		String str = tuple.getString(0);
 		Map<String, Object> map = new HashMap<String, Object>();
-		Values values = new Values();
 		map = (Map<String, Object>) JSONValue.parse(str);
-		boolean tag = true;
+
+		// null check
 		for (String field : fields) {
 			if (map.get(field) == null) {
-				tag = false;
-				break;
-			} else {
-				values.add(map.get(field));
+				return;
 			}
 		}
-		if (tag) {
+
+		// get tags
+		ArrayList<String> tags = new ArrayList<String>();
+		List<String> list = (List<String>) map.get(Tweet.TAGS);
+		for (String tag : list) {
+			tags.add(tag);
+		}
+
+		// emit the values,separate one message with multiple-tags into
+		// multiple-messages with one tag
+		for (String tag : tags) {
+			Values values = new Values();
+			for (String attribute : fields) {
+				if (!attribute.equals(Tweet.TAGS)) {
+					values.add(map.get(attribute));
+				}
+			}
+			values.add(tag);
 			collector.emit(values);
 		}
 	}
-
 }

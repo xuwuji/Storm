@@ -12,7 +12,7 @@ public class IntValueMapper extends BaseRowMapper<Integer> {
 
 	@Override
 	public Integer getValue(Row row) {
-		return row.getInt(this.columnsNames[columnsNames.length - 1]);
+		return row.getInt("count");
 	}
 
 }
