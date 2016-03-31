@@ -13,6 +13,7 @@ import com.xuwuji.stock.trident.operation.LogHandler;
 import com.xuwuji.twitter.cassandra.cql.mapper.IntValueMapper;
 import com.xuwuji.twitter.storm.state.TwitterPersistManager;
 import com.xuwuji.twitter.storm.trident.operation.Count;
+import com.xuwuji.twitter.storm.trident.operation.GeoParser;
 import com.xuwuji.twitter.storm.trident.operation.TimeRound;
 import com.xuwuji.twitter.storm.trident.operation.TweetParser;
 
@@ -35,19 +36,26 @@ public class TwitterTopology {
 				.createTridentSpout(Constants.ZKHOST, Constants.TWITTER_TOPIC, "twitter-spout", false));
 		String[] fields = new String[] { Tweet.TIME, Tweet.USERNAME, Tweet.LOCATION, Tweet.TEXT, Tweet.TAGS };
 		String[] parsedfields = new String[] { Tweet.TIME, Tweet.USERNAME, Tweet.LOCATION, Tweet.TEXT, "tag" };
-		Stream parsedStream = stream.each(new Fields("str"), new TweetParser(fields), new Fields(parsedfields))
+
+		Stream separateParsedStream = stream
+				.each(new Fields("str"), new TweetParser(fields, true), new Fields(parsedfields))
 				.each(new Fields(parsedfields), new LogHandler())
 				.each(new Fields(Tweet.TIME), new TimeRound(TimeType.HOUR), new Fields("hour"))
 				.each(new Fields(Tweet.TIME), new TimeRound(TimeType.DAY), new Fields("day"))
 				.each(new Fields(Tweet.TIME), new TimeRound(TimeType.MONTH), new Fields("month"));
+
+		Stream nonseparateParsedStream = stream
+				.each(new Fields("str"), new TweetParser(fields, false), new Fields(parsedfields))
+				.each(new Fields(Tweet.TIME), new TimeRound(TimeType.HOUR), new Fields("hour"))
+				.each(new Fields(Tweet.TIME), new TimeRound(TimeType.DAY), new Fields("day"))
+				.each(new Fields(Tweet.TIME), new TimeRound(TimeType.MONTH), new Fields("month"));
+
 		// The project method on Stream keeps only the fields specified in the
 		// operation.
-		Stream locationStream = parsedStream.project(new Fields(Tweet.LOCATION, "hour", "day", "month"))
-				.each(new Fields(Tweet.LOCATION, "hour", "day", "month"), new LogHandler());
-
-		Stream tagStream = parsedStream.project(new Fields("tag", "hour", "day", "month"))
-				.each(new Fields("tag", "hour", "day", "month"), new LogHandler());
-
+		Stream locationStream = nonseparateParsedStream.project(new Fields(Tweet.LOCATION, "hour", "day", "month"));
+		Stream tagStream = separateParsedStream.project(new Fields("tag", "hour", "day", "month"));
+		Stream geoStream = nonseparateParsedStream.project(new Fields(Tweet.LOCATION, "hour", "day", "month"))
+				.each(new Fields(Tweet.LOCATION), new GeoParser(), new Fields("latlng"));
 		// declare the config for the cassandra persistence manager
 		Map<String, Object> persistConfig = new HashMap<String, Object>();
 		persistConfig.put("keyspace", "mykeyspace");

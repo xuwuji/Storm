@@ -23,13 +23,46 @@ import storm.trident.tuple.TridentTuple;
 public class TweetParser extends BaseFunction {
 	private static final long serialVersionUID = 1L;
 	private String[] fields;
+	private boolean separate;
 
-	public TweetParser(String[] fields) {
+	/**
+	 * 
+	 * @param fields
+	 *            which fields to be parsed
+	 * @param separate
+	 *            whether separate the message into multiple messages based on
+	 *            tags
+	 */
+	public TweetParser(String[] fields, boolean separate) {
 		this.fields = fields;
+		this.separate = separate;
 	}
 
 	@SuppressWarnings("unchecked")
 	public void execute(TridentTuple tuple, TridentCollector collector) {
+		if (separate) {
+			separate(tuple, collector);
+		} else {
+			String str = tuple.getString(0);
+			Map<String, Object> map = new HashMap<String, Object>();
+			map = (Map<String, Object>) JSONValue.parse(str);
+			Values values = new Values();
+
+			for (String field : fields) {
+				// null check
+				if (map.get(field) == null) {
+					return;
+				} else {
+					values.add(map.get(field));
+				}
+			}
+			collector.emit(values);
+		}
+
+	}
+
+	@SuppressWarnings("unchecked")
+	private void separate(TridentTuple tuple, TridentCollector collector) {
 		String str = tuple.getString(0);
 		Map<String, Object> map = new HashMap<String, Object>();
 		map = (Map<String, Object>) JSONValue.parse(str);
@@ -61,4 +94,5 @@ public class TweetParser extends BaseFunction {
 			collector.emit(values);
 		}
 	}
+
 }
