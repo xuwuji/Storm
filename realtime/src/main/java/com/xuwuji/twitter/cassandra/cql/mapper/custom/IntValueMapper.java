@@ -1,6 +1,7 @@
-package com.xuwuji.twitter.cassandra.cql.mapper;
+package com.xuwuji.twitter.cassandra.cql.mapper.custom;
 
 import com.datastax.driver.core.Row;
+import com.xuwuji.twitter.cassandra.cql.mapper.base.BaseRowMapper;
 
 public class IntValueMapper extends BaseRowMapper<Integer> {
 

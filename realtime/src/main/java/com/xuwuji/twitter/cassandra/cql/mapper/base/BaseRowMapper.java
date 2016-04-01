@@ -1,4 +1,4 @@
-package com.xuwuji.twitter.cassandra.cql.mapper;
+package com.xuwuji.twitter.cassandra.cql.mapper.base;
 
 import java.io.Serializable;
 import java.util.List;
@@ -33,6 +33,12 @@ public class BaseRowMapper<V> implements CqlRowMapper<List<Object>, V>, Serializ
 	protected String[] valueNames;
 	protected String[] columnsNames;
 	protected Object[] columnsValues;
+
+	public BaseRowMapper(String keyspace, String table, String[] columnsNames) {
+		this.keyspace = keyspace;
+		this.table = table;
+		this.columnsNames = columnsNames;
+	}
 
 	public BaseRowMapper(String keyspace, String table, String[] keyColumns, String[] valueColumns) {
 		this.keyspace = keyspace;

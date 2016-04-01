@@ -33,6 +33,7 @@ public class GeoParser extends BaseFunction {
 
 	@Override
 	public void execute(TridentTuple tuple, TridentCollector collector) {
+		Values values = new Values();
 		String location = tuple.getString(0);
 		GeocoderRequest request = new GeocoderRequestBuilder().setAddress(location).setLanguage("en")
 				.getGeocoderRequest();
@@ -44,7 +45,11 @@ public class GeoParser extends BaseFunction {
 			System.out.println(latLng.toString());
 			// System.out.println("lat: " + latLng.getLat());
 			// System.out.println("lng: " + latLng.getLng());
+			values.add(latLng.getLat());
+			values.add(latLng.getLng());
+			collector.emit(values);
 		}
+
 	}
 
 }

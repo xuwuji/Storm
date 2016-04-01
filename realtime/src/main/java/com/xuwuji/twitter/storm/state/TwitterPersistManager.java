@@ -8,7 +8,7 @@ import java.util.Map;
 import com.hmsonline.trident.cql.CassandraCqlMapStateFactory;
 import com.hmsonline.trident.cql.CassandraCqlMapState;
 import com.hmsonline.trident.cql.mappers.CqlRowMapper;
-import com.xuwuji.twitter.cassandra.cql.mapper.BaseRowMapper;
+import com.xuwuji.twitter.cassandra.cql.mapper.base.BaseRowMapper;
 
 import storm.trident.state.StateFactory;
 import storm.trident.state.StateType;

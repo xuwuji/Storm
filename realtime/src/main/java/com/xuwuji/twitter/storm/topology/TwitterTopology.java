@@ -4,13 +4,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.datastax.driver.core.ConsistencyLevel;
+import com.hmsonline.trident.cql.CassandraCqlStateFactory;
+import com.hmsonline.trident.cql.CassandraCqlStateUpdater;
 import com.hmsonline.trident.cql.MapConfiguredCqlClientFactory;
 import com.xuwuji.realtime.util.Constants;
 import com.xuwuji.realtime.util.KafkaSpoutFactory;
 import com.xuwuji.realtime.util.TimeType;
 import com.xuwuji.stock.model.Tweet;
-import com.xuwuji.stock.trident.operation.LogHandler;
-import com.xuwuji.twitter.cassandra.cql.mapper.IntValueMapper;
+import com.xuwuji.twitter.cassandra.cql.mapper.custom.GeoMapper;
+import com.xuwuji.twitter.cassandra.cql.mapper.custom.IntValueMapper;
 import com.xuwuji.twitter.storm.state.TwitterPersistManager;
 import com.xuwuji.twitter.storm.trident.operation.Count;
 import com.xuwuji.twitter.storm.trident.operation.GeoParser;
@@ -37,9 +40,9 @@ public class TwitterTopology {
 		String[] fields = new String[] { Tweet.TIME, Tweet.USERNAME, Tweet.LOCATION, Tweet.TEXT, Tweet.TAGS };
 		String[] parsedfields = new String[] { Tweet.TIME, Tweet.USERNAME, Tweet.LOCATION, Tweet.TEXT, "tag" };
 
+		// 1. parse the stream into two types: separate and non-separate
 		Stream separateParsedStream = stream
 				.each(new Fields("str"), new TweetParser(fields, true), new Fields(parsedfields))
-				.each(new Fields(parsedfields), new LogHandler())
 				.each(new Fields(Tweet.TIME), new TimeRound(TimeType.HOUR), new Fields("hour"))
 				.each(new Fields(Tweet.TIME), new TimeRound(TimeType.DAY), new Fields("day"))
 				.each(new Fields(Tweet.TIME), new TimeRound(TimeType.MONTH), new Fields("month"));
@@ -50,16 +53,15 @@ public class TwitterTopology {
 				.each(new Fields(Tweet.TIME), new TimeRound(TimeType.DAY), new Fields("day"))
 				.each(new Fields(Tweet.TIME), new TimeRound(TimeType.MONTH), new Fields("month"));
 
-		// The project method on Stream keeps only the fields specified in the
-		// operation.
+		// 2. get detailed stream based on different dimensions
 		Stream locationStream = nonseparateParsedStream.project(new Fields(Tweet.LOCATION, "hour", "day", "month"));
 		Stream tagStream = separateParsedStream.project(new Fields("tag", "hour", "day", "month"));
 		Stream geoStream = nonseparateParsedStream.project(new Fields(Tweet.LOCATION, "hour", "day", "month"))
-				.each(new Fields(Tweet.LOCATION), new GeoParser(), new Fields("latlng"));
+				.each(new Fields(Tweet.LOCATION), new GeoParser(), new Fields("lat", "lng"));
+
 		// declare the config for the cassandra persistence manager
 		Map<String, Object> persistConfig = new HashMap<String, Object>();
 		persistConfig.put("keyspace", "mykeyspace");
-		// persistConfig.put("tablename", "twitterlocation");
 		persistConfig.put("batchsize", 10);
 		TwitterPersistManager manager = new TwitterPersistManager(persistConfig);
 
@@ -75,6 +77,9 @@ public class TwitterTopology {
 		// an error
 		groupByLocation(locationStream, locationState, locationKeys);
 		groupByTag(tagStream, tagState, tagKeys);
+
+		// persist each geo message into cassandra
+		persistGeo(geoStream);
 		return topology.build();
 	}
 
@@ -86,6 +91,14 @@ public class TwitterTopology {
 	public void groupByTag(Stream stream, StateFactory state, String[] keys) {
 		stream.groupBy(new Fields(Arrays.asList(keys))).persistentAggregate(state, new Count(), COUNT)
 				.parallelismHint(2);
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void persistGeo(Stream stream) {
+		String[] geoColumns = new String[] { "lat", "lng", "hour", "day", "month" };
+		stream.partitionPersist(new CassandraCqlStateFactory(ConsistencyLevel.ONE), new Fields(geoColumns),
+				// if set the mapper to false, the tuple won't emit any more
+				new CassandraCqlStateUpdater(new GeoMapper("mykeyspace", "geo", geoColumns), false));
 	}
 
 	public static void main(String[] args) {
